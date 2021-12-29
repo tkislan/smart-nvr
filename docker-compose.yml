@@ -1,0 +1,15 @@
+version: '2.4'
+
+services:
+  minio:
+    image: minio/minio:RELEASE.2021-11-24T23-19-33Z
+    command: server /data
+    volumes:
+      - minio:/data
+    environment:
+      MINIO_ACCESS_KEY: dummy
+      MINIO_SECRET_KEY: nosecret
+    ports:
+      - 19000:9000
+volumes:
+  minio:

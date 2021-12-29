@@ -1,0 +1,12 @@
+FROM nvcr.io/nvidia/l4t-pytorch:r32.6.1-pth1.9-py3
+
+RUN apt update -y && \
+    apt install -y pkgconf && \
+    apt install -y libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev
+
+WORKDIR /usr/src/app
+
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
+
+COPY . .
