@@ -28,7 +28,7 @@ def run():
     config = ApplicationConfig.load_from_file("config.yaml")
     print(config)
 
-    device = torch.device("cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = torch.hub.load(
         "ultralytics/yolov5", "yolov5m"
     )  # or yolov5m, yolov5l, yolov5x, custom
