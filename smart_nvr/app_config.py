@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Dict, Optional
 from typing_extensions import Literal
 from pydantic import BaseModel, Field, Extra
@@ -43,8 +44,19 @@ class CameraFeedConfig(BaseModel, extra=Extra.ignore):
         return f"rtsp://{auth}{self.host}:{self.port}{self.path}"
 
 
+class ModelNameEnum(str, Enum):
+    yolo_v5_s = "yolo_v5_s"
+    tf_ssd_mobilenet_v2 = "tf_ssd_mobilenet_v2"
+    tf_ssdlite_mobilenet_v2 = "tf_ssdlite_mobilenet_v2"
+
+
+class ModelConfig(BaseModel, extra=Extra.ignore):
+    name: ModelNameEnum
+
+
 class ApplicationConfig(BaseModel, extra=Extra.ignore):
     camera_feeds: Dict[str, CameraFeedConfig] = Field(default_factory=dict)
+    model: ModelConfig
 
     @classmethod
     def load_from_file(cls, file_path: Optional[str] = None) -> "ApplicationConfig":

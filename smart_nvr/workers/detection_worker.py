@@ -1,10 +1,9 @@
 import queue
 
-from smart_nvr.camera.feed_multiplexer import CameraFeedMultiplexer
-from smart_nvr.detection.post_processing import filter_detections
-
+from ..camera.feed_multiplexer import CameraFeedMultiplexer
 from ..camera.image import DetectionCameraImageContainer
-from ..detection.yolo import detect
+from ..detection.base_model import BaseDetectionModel
+from ..detection.post_processing import filter_detections
 from .base_worker import BaseWorker
 
 
@@ -13,7 +12,7 @@ class DetectionWorker(BaseWorker):
 
     def __init__(
         self,
-        model,
+        model: BaseDetectionModel,
         image_queue: CameraFeedMultiplexer,
     ):
         super().__init__(name="DetectionWorker")
@@ -30,7 +29,7 @@ class DetectionWorker(BaseWorker):
         try:
             img = self._image_queue.get(block=True, timeout=1)
 
-            detections = detect(self._model, img)
+            detections = self._model.detect(img)
 
             detections = filter_detections(
                 detections,

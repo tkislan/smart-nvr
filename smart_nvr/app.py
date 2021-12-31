@@ -3,24 +3,25 @@ import time
 from typing import List
 
 import cv2
-import torch
+
+from smart_nvr.app_config import ApplicationConfig
 from smart_nvr.camera.feed_multiplexer import CameraFeedMultiplexer
 from smart_nvr.camera.image import CameraImageContainer, get_split_image_dimensions
+from smart_nvr.detection.base_model import BaseDetectionModel
+from smart_nvr.detection.model_map import MODEL_MAP
 from smart_nvr.workers.base_worker import BaseWorker
-
 from smart_nvr.workers.camera_feed_worker import CameraFeedWorker
-from smart_nvr.workers.detection_worker import DetectionWorker, detect
+from smart_nvr.workers.detection_worker import DetectionWorker
 from smart_nvr.workers.video_worker import VideoWorker
 from smart_nvr.workers.visualize_worker import VisualizeWorker
-from smart_nvr.app_config import ApplicationConfig
 
 
-def warmup_model(model):
-    img_raw = cv2.imread("data/cat.jpeg")
+def warmup_model(model: BaseDetectionModel):
+    img_raw = cv2.imread("data/images/cat.jpeg")
     img = CameraImageContainer.create(
         "warmup", img_raw, get_split_image_dimensions(img_raw)
     )
-    detections = detect(model, img)
+    detections = model.detect(img)
     assert "cat" in {d.name for d in detections}
 
 
@@ -28,12 +29,10 @@ def run():
     config = ApplicationConfig.load_from_file("config.yaml")
     print(config)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = torch.hub.load(
-        "ultralytics/yolov5", "yolov5m"
-    )  # or yolov5m, yolov5l, yolov5x, custom
-    model = model.to(device)
-
+    # model_cls = YoloSDetectionModel
+    model_cls = MODEL_MAP[config.model.name]
+    model = model_cls()
+    model.load()
     warmup_model(model)
 
     workers: List[BaseWorker] = []
