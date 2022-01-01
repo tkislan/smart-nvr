@@ -8,11 +8,11 @@ import av
 
 from ..camera.image import DetectionCameraImageContainer
 
-VIDEO_MAX_TIME_MILLIS = 10 * 1000  # 10 seconds
-VIDEO_MAX_NO_DETECTION_TIME_MILLIS = 3 * 1000  # 3 seconds
+VIDEO_MAX_TIME_MILLIS = 15 * 1000  # 15 seconds
+VIDEO_MAX_NO_DETECTION_TIME_MILLIS = 5 * 1000  # 5 seconds
 
 
-class VideoWriter:
+class VideoOutputFile:
     _first_frame_time: Optional[int]
     _last_detection_time: Optional[int]
 
@@ -23,18 +23,6 @@ class VideoWriter:
         )
         self._first_frame_time = None
         self._last_detection_time = None
-
-    @staticmethod
-    def create_video_output(file_path: str, width: int, height: int):
-        container = av.open(file_path, mode="w")
-        stream = container.add_stream("mpeg4", rate=25)  # alibi frame rate
-        stream.width = width
-        stream.height = height
-        stream.pix_fmt = "yuv420p"
-
-        stream.codec_context.time_base = Fraction(1, 1000)
-
-        return container, stream
 
     @property
     def file_path(self) -> str:
@@ -54,9 +42,6 @@ class VideoWriter:
         )
 
     def write_image(self, img: DetectionCameraImageContainer):
-        if self._first_frame_time is None:
-            self._first_frame_time = img.camera_image_container.created_at
-
         frame = av.VideoFrame.from_ndarray(
             img.camera_image_container.raw_image_np, format="rgb24"
         )
@@ -84,10 +69,22 @@ class VideoWriter:
             self._container.mux(packet)
         self._container.close()
 
+    @staticmethod
+    def create_video_output(file_path: str, width: int, height: int):
+        container = av.open(file_path, mode="w")
+        stream = container.add_stream("mpeg4", rate=25)  # alibi frame rate
+        stream.width = width
+        stream.height = height
+        stream.pix_fmt = "yuv420p"
+
+        stream.codec_context.time_base = Fraction(1, 1000)
+
+        return container, stream
+
 
 class VideoWriterManager:
     _output_directory: str
-    _video_writers: Dict[str, VideoWriter]
+    _video_writers: Dict[str, VideoOutputFile]
 
     def __init__(self, output_directory: str):
         self._output_directory = output_directory
@@ -106,7 +103,7 @@ class VideoWriterManager:
     def has_video_writer(self, camera_name: str) -> bool:
         return camera_name in self._video_writers
 
-    def get_video_writer(self, img: DetectionCameraImageContainer) -> VideoWriter:
+    def get_video_writer(self, img: DetectionCameraImageContainer) -> VideoOutputFile:
         camera_name = img.camera_image_container.camera_name
         height = img.camera_image_container.raw_image_np.shape[0]
         width = img.camera_image_container.raw_image_np.shape[1]
@@ -120,18 +117,19 @@ class VideoWriterManager:
 
             file_path = os.path.join(
                 self._output_directory,
-                f"{camera_name}_{img_datetime.strftime('%Y-%m-%dT%H:%M:%S')}.mp4",
+                f"{camera_name}_{img_datetime.strftime('%Y-%m-%dT%H%M%S')}.mp4",
             )
-            video_writer = VideoWriter(file_path, width, height)
+            video_writer = VideoOutputFile(file_path, width, height)
+            print("Created video writer:", file_path, video_writer)
             self._video_writers[camera_name] = video_writer
 
         return video_writer
 
     @staticmethod
     def close_video_writers(
-        video_writers: List[Tuple[str, VideoWriter]]
-    ) -> List[Tuple[str, VideoWriter]]:
-        closed_video_writers: List[Tuple[str, VideoWriter]] = []
+        video_writers: List[Tuple[str, VideoOutputFile]]
+    ) -> List[Tuple[str, VideoOutputFile]]:
+        closed_video_writers: List[Tuple[str, VideoOutputFile]] = []
 
         for name, video_writer in video_writers:
             video_writer.close()

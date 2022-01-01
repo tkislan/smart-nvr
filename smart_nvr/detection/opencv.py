@@ -66,7 +66,7 @@ class OpenCVTensorflowDetectionModel(BaseDetectionModel):
         for dimensions, cropped_image in zip(img.dimensions, img.cropped_images):
             t = int(time.perf_counter() * 1000)
             model_img = cv2.resize(cropped_image, self.model_image_size())
-            print(f"Img resize took {int(time.perf_counter() * 1000) - t} ms")
+            # print(f"Img resize took {int(time.perf_counter() * 1000) - t} ms")
 
             t = int(time.perf_counter() * 1000)
             self._model.setInput(
@@ -74,11 +74,11 @@ class OpenCVTensorflowDetectionModel(BaseDetectionModel):
                     model_img, size=self.model_image_size(), swapRB=True
                 )
             )
-            print(f"Model set input took {int(time.perf_counter() * 1000) - t} ms")
+            # print(f"Model set input took {int(time.perf_counter() * 1000) - t} ms")
 
             t = int(time.perf_counter() * 1000)
             output = self._model.forward()
-            print(f"Model infer took {int(time.perf_counter() * 1000) - t} ms")
+            # print(f"Model infer took {int(time.perf_counter() * 1000) - t} ms")
 
             for raw_prediction in output[0, 0, :, :]:
                 confidence = float(raw_prediction[2])

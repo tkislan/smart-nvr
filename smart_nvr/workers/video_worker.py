@@ -36,7 +36,10 @@ class VideoWorker(BaseWorker):
 
         for file_path in file_paths:
             print("Closed video writer:", file_path)
-            self._file_path_queue.put(file_path)
+            try:
+                self._file_path_queue.put_nowait(file_path)
+            except queue.Full:
+                pass
 
     def teardown(self):
         file_paths = self._video_writer_manager.close_all_video_writers()
