@@ -27,7 +27,7 @@ def warmup_model(model: BaseDetectionModel):
 
 
 def run():
-    config = ApplicationConfig.load_from_file("config.yaml")
+    config = ApplicationConfig.load_from_file("/config/app.yaml")
     print(config)
 
     model_cls = MODEL_MAP[config.model.name]

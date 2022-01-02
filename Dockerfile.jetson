@@ -13,5 +13,9 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 
+RUN mkdir /config
+
 env PYTHONPATH=/usr/src/app
 env PYTHONUNBUFFERED=1
+
+ENTRYPOINT ["python3", "/usr/src/app/smart_nvr/app.py"]
