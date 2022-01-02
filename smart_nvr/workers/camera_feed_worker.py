@@ -7,7 +7,6 @@ import cv2
 import numpy as np
 
 from ..app_config import CameraFeedConfig
-
 from ..camera.image import CameraImageContainer, get_split_image_dimensions
 from ..camera.motion_detection.hikvision import HikvisionMotionDetection
 from .base_worker import BaseWorker

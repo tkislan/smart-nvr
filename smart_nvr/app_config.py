@@ -1,10 +1,9 @@
 from enum import Enum
 from typing import Dict, Optional
+
+from pydantic import BaseModel, Extra, Field
 from typing_extensions import Literal
-from pydantic import BaseModel, Field, Extra
-
 from yaml import safe_load
-
 
 DEFAULT_CONFIG_FILE_PATH = "config.yaml"
 

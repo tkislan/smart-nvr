@@ -2,6 +2,7 @@ import time
 from typing import List, Optional, Tuple
 
 import numpy as np
+
 from ..detection.detection_types import Detection
 
 

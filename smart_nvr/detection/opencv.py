@@ -87,7 +87,7 @@ class OpenCVTensorflowDetectionModel(BaseDetectionModel):
                     detections.append(
                         adjust_cropped_detection(
                             Detection(
-                                name=COCO_LABELS.get(int(raw_prediction[1])),
+                                name=COCO_LABELS.get(int(raw_prediction[1]), "unknown"),
                                 confidence=confidence,
                                 xmin=float(raw_prediction[3] * cropped_image.shape[1]),
                                 ymin=float(raw_prediction[4] * cropped_image.shape[0]),

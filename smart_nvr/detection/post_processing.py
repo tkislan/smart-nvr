@@ -1,4 +1,5 @@
 from typing import Iterable, List
+
 from .detection_types import Detection
 
 
