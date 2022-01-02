@@ -1,0 +1,40 @@
+name: Build
+
+on: [push]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ['jetson']
+    env:
+      DOCKER_BUILDKIT: 1
+      REPOSITORY_NAME: tkislan/smart-nvr
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set Image tags
+      run: |
+        echo "GIT_SHORT_SHA=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+        echo "GIT_BRANCH=$(echo ${GITHUB_REF#refs/heads/} | sed 's#/#__#g')" >> $GITHUB_ENV
+    
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v1
+      with:
+        image: tonistiigi/binfmt:latest
+        platforms: arm64
+    
+    - name: Pull image
+      run: docker pull ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ env.GIT_BRANCH }} || docker pull ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-master || true
+    
+    - name: Build image
+      run: |
+        docker build -f Dockerfile.${{ matrix.target }} -t ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ github.run_number }}-${{ env.GIT_BRANCH }}-${{ env.GIT_SHORT_SHA }} .
+        docker tag ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ github.run_number }}-${{ env.GIT_BRANCH  }}-${{ env.GIT_SHORT_SHA }} ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ env.GIT_BRANCH  }}
+
+    - name: Push image
+      run: |
+        docker push ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ github.run_number }}-${{ env.GIT_BRANCH  }}-${{ env.GIT_SHORT_SHA }}
+        docker push ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ env.GIT_BRANCH  }}
