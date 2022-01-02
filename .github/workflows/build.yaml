@@ -55,6 +55,9 @@ jobs:
         name: models-artifact
         path: data/models
     
+    - name: Install dependencies
+      run: apt update -y && apt install -y pkgconf libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev
+    
     - name: Install Python Packages
       run: pip3 install -r requirements.dev.txt
     
