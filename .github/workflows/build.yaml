@@ -26,6 +26,13 @@ jobs:
         image: tonistiigi/binfmt:latest
         platforms: arm64
     
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
     - name: Pull image
       run: docker pull ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ env.GIT_BRANCH }} || docker pull ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-master || true
     
