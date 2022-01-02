@@ -11,7 +11,7 @@ av==6.2.0
 # numpy==1.19.5
 
 PyYAML==6.0.0
-pydantic==1.8.2
+pydantic==1.9.0
 
 # tqdm==4.62.3
 
