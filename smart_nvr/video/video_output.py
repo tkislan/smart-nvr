@@ -1,5 +1,5 @@
-from datetime import datetime
 import time
+from datetime import datetime
 from fractions import Fraction
 from typing import Optional
 
