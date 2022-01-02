@@ -26,7 +26,7 @@ for model in ${MODELS}; do
 
     model_url="http://download.tensorflow.org/models/object_detection/${model}.tar.gz"
     echo -n "Downloading model ${model} from ${model_url} ... "
-    wget "${model_url}"
+    wget -q "${model_url}"
     echo "done"
 
     tar -xf "${model}.tar.gz"
