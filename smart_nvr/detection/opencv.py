@@ -53,6 +53,7 @@ class OpenCVTensorflowDetectionModel(BaseDetectionModel):
         self._model = cv2.dnn.readNetFromTensorflow(model_path, config_path)
 
         if cv2.cuda.getCudaEnabledDeviceCount() > 0:
+            print("OpenCV DNN Using Cuda")
             self._model.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
             self._model.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
