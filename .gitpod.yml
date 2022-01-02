@@ -1,3 +1,4 @@
+image:
+  file: .gitpod.Dockerfile
 tasks:
-  - init: pyenv install 3.6.9
-    command: pip3 install -r requirements.dev.txt
+  - init: pip3 install -r requirements.dev.txt
