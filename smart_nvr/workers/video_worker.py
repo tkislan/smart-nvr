@@ -1,12 +1,13 @@
 import queue
 
 from ..camera.image import DetectionCameraImageContainer
-from ..video.video_writer import VideoWriterManager
+from ..video.output_file import OutputFile
+from ..video.video_writer_manager import VideoWriterManager
 from .base_worker import BaseWorker
 
 
 class VideoWorker(BaseWorker):
-    _file_path_queue: "queue.Queue[str]"
+    _output_file_queue: "queue.Queue[OutputFile]"
 
     def __init__(
         self,
@@ -16,11 +17,11 @@ class VideoWorker(BaseWorker):
         super().__init__(name="VideoWorker")
         self._video_writer_manager = VideoWriterManager(output_directory)
         self._detection_queue = detection_queue
-        self._file_path_queue = queue.Queue(10)
+        self._output_file_queue = queue.Queue(10)
 
     @property
-    def file_path_queue(self) -> "queue.Queue[str]":
-        return self._file_path_queue
+    def file_path_queue(self) -> "queue.Queue[OutputFile]":
+        return self._output_file_queue
 
     def run_processing(self):
         try:
@@ -28,22 +29,25 @@ class VideoWorker(BaseWorker):
                 block=True, timeout=1
             )
 
-            self._video_writer_manager.write_image(img)
+            image_output_file = self._video_writer_manager.write_image(img)
+            self._output_file_queue.put_nowait(image_output_file)
         except queue.Empty:
             pass
+        except queue.Full:
+            pass
 
-        file_paths = self._video_writer_manager.close_eligible_video_writers()
+        output_files = self._video_writer_manager.close_eligible_video_outputs()
 
-        for file_path in file_paths:
-            print("Closed video writer:", file_path)
+        for output_file in output_files:
+            print("Closed video writer:", output_file)
             try:
-                self._file_path_queue.put_nowait(file_path)
+                self._output_file_queue.put_nowait(image_output_file)
             except queue.Full:
                 pass
 
     def teardown(self):
-        file_paths = self._video_writer_manager.close_all_video_writers()
+        output_files = self._video_writer_manager.close_all_video_outputs()
 
-        for file_path in file_paths:
-            print("Closed video writer:", file_path)
-            self._file_path_queue.put(file_path)
+        for output_file in output_files:
+            print("Closed video writer:", output_file)
+            self._output_file_queue.put(output_file)

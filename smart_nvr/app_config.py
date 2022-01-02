@@ -53,9 +53,20 @@ class ModelConfig(BaseModel, extra=Extra.ignore):
     name: ModelNameEnum
 
 
+class MinioConfig(BaseModel, extra=Extra.ignore):
+    host: str
+    port: int = Field(default=9000)
+    access_key: str
+    secret_key: str
+    secure: bool = Field(default=False)
+
+    bucket: str
+
+
 class ApplicationConfig(BaseModel, extra=Extra.ignore):
     camera_feeds: Dict[str, CameraFeedConfig] = Field(default_factory=dict)
     model: ModelConfig
+    minio: MinioConfig
 
     @classmethod
     def load_from_file(cls, file_path: Optional[str] = None) -> "ApplicationConfig":

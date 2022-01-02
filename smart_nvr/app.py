@@ -12,6 +12,7 @@ from smart_nvr.detection.model_map import MODEL_MAP
 from smart_nvr.workers.base_worker import BaseWorker
 from smart_nvr.workers.camera_feed_worker import CameraFeedWorker
 from smart_nvr.workers.detection_worker import DetectionWorker
+from smart_nvr.workers.minio_worker import MinioWorker
 from smart_nvr.workers.video_worker import VideoWorker
 from smart_nvr.workers.visualize_worker import VisualizeWorker
 
@@ -29,7 +30,6 @@ def run():
     config = ApplicationConfig.load_from_file("config.yaml")
     print(config)
 
-    # model_cls = YoloSDetectionModel
     model_cls = MODEL_MAP[config.model.name]
     model = model_cls()
     model.load()
@@ -59,6 +59,11 @@ def run():
         detection_queue=visualizer_worker.output_queue,
     )
     workers.append(video_worker)
+
+    minio_worker = MinioWorker(
+        config=config.minio, file_queue=video_worker.file_path_queue
+    )
+    workers.append(minio_worker)
 
     for worker in workers:
         worker.start()

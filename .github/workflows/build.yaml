@@ -36,6 +36,12 @@ jobs:
       - download-models
     runs-on: ubuntu-latest
     container: python:3.6.9
+    services:
+      minio:
+        image: minio/minio:RELEASE.2021-11-24T23-19-33Z
+        env:
+          MINIO_ACCESS_KEY: dummy
+          MINIO_SECRET_KEY: nosecret
 
     steps:
     - uses: actions/checkout@v2
