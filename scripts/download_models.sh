@@ -7,7 +7,9 @@ MODELS="ssd_mobilenet_v2_coco_2018_03_29 ssdlite_mobilenet_v2_coco_2018_05_09"
 
 opencv_tmpdir="$(mktemp -d)"
 mkdir -p "${opencv_tmpdir}"
-git clone --depth 1 https://github.com/opencv/opencv "${opencv_tmpdir}"
+echo -n "Cloning OpenCV ... "
+git clone -q --depth 1 https://github.com/opencv/opencv "${opencv_tmpdir}"
+echo "done"
 
 for model in ${MODELS}; do
     model_dir="${ROOT_DIR}/data/models/${model}"
@@ -23,8 +25,9 @@ for model in ${MODELS}; do
     pushd "${tmpdir}"
 
     model_url="http://download.tensorflow.org/models/object_detection/${model}.tar.gz"
-    echo "${model_url}"
+    echo -n "Downloading model ${model} from ${model_url} ... "
     wget "${model_url}"
+    echo "done"
 
     tar -xf "${model}.tar.gz"
 
