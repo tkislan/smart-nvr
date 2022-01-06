@@ -40,15 +40,17 @@ def run():
 
     workers: List[BaseWorker] = []
 
+    camera_feed_multiplexer = CameraFeedMultiplexer()
+
     camera_workers = [
-        CameraFeedWorker(camera_name, camera_config)
+        CameraFeedWorker(camera_name, camera_feed_multiplexer, camera_config)
         for camera_name, camera_config in config.camera_feeds.items()
     ]
     workers.extend(camera_workers)
 
     detection_worker = DetectionWorker(
         model=model,
-        image_queue=CameraFeedMultiplexer([c.image_queue for c in camera_workers]),
+        image_queue=camera_feed_multiplexer,
     )
     # Run detection worker in main thread
 
