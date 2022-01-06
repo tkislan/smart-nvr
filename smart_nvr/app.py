@@ -1,3 +1,5 @@
+import logging
+import os
 import signal
 from typing import List
 
@@ -15,6 +17,8 @@ from smart_nvr.workers.minio_worker import MinioWorker
 from smart_nvr.workers.video_worker import VideoWorker
 from smart_nvr.workers.visualize_worker import VisualizeWorker
 
+logger = logging.getLogger(__name__)
+
 
 def warmup_model(model: BaseDetectionModel):
     img_raw = cv2.imread("data/images/cat.jpeg")
@@ -27,7 +31,7 @@ def warmup_model(model: BaseDetectionModel):
 
 def run():
     config = ApplicationConfig.load_from_file("/config/app.yaml")
-    print(config)
+    logger.info(config)
 
     model_cls = MODEL_MAP[config.model.name]
     model = model_cls()
@@ -84,5 +88,11 @@ def run():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        format="[%(levelname).1s] %(message)s",
+        level=logging.getLevelName(os.environ.get("LOG_LEVEL", "INFO")),
+    )
+
+    logger.info("Starting")
     run()
-    print("Done")
+    logger.info("Done")

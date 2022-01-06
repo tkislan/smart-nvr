@@ -1,3 +1,4 @@
+import logging
 import os
 import queue
 from pathlib import PosixPath
@@ -7,6 +8,8 @@ from minio import Minio
 from ..app_config import MinioConfig
 from ..video.output_file import OutputFile
 from .base_worker import BaseWorker
+
+logger = logging.getLogger(__name__)
 
 
 def get_object_name(output_file: OutputFile) -> str:
@@ -41,14 +44,12 @@ class MinioWorker(BaseWorker):
             if not self._minio_client.bucket_exists(self._bucket_name):
                 self._minio_client.make_bucket(self._bucket_name)
         except Exception as error:
-            print(error)
+            logger.error(error)
             self._minio_client = None
 
     def run_processing(self):
         try:
             output_file = self._file_queue.get(block=True, timeout=1)
-
-            print(output_file)
 
             self.upload_file(output_file)
         except queue.Empty:
@@ -59,7 +60,7 @@ class MinioWorker(BaseWorker):
             if self._minio_client is not None:
                 object_name = get_object_name(output_file)
 
-                print(
+                logger.info(
                     f"Uploading file from {output_file.file_path} to {self._bucket_name}/{object_name}"
                 )
                 self._minio_client.fput_object(
@@ -68,9 +69,9 @@ class MinioWorker(BaseWorker):
                     file_path=output_file.file_path,
                 )
         except Exception as error:
-            print(error)
+            logger.error(f"Failed to upload file to minio: {error}")
         finally:
             try:
                 os.remove(output_file.file_path)
             except Exception as error:
-                print(error)
+                logger.error(f"Failed to remove local file: {error}")

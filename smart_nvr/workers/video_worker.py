@@ -1,9 +1,12 @@
+import logging
 import queue
 
 from ..camera.image import DetectionCameraImageContainer
 from ..video.output_file import OutputFile
 from ..video.video_writer_manager import VideoWriterManager
 from .base_worker import BaseWorker
+
+logger = logging.getLogger(__name__)
 
 
 class VideoWorker(BaseWorker):
@@ -40,7 +43,7 @@ class VideoWorker(BaseWorker):
         output_files = self._video_writer_manager.close_eligible_video_outputs()
 
         for output_file in output_files:
-            print("Closed video writer:", output_file)
+            logger.info(f"Closed video writer: {output_file}")
             try:
                 self._output_file_queue.put_nowait(output_file)
             except queue.Full:
@@ -50,5 +53,5 @@ class VideoWorker(BaseWorker):
         output_files = self._video_writer_manager.close_all_video_outputs()
 
         for output_file in output_files:
-            print("Closed video writer:", output_file)
+            logger.info(f"Closed video writer: {output_file}")
             self._output_file_queue.put(output_file)

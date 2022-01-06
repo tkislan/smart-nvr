@@ -1,8 +1,11 @@
+import logging
 from typing import Any, Callable, Dict, List, Optional
 
 from pyhik.hikvision import HikCamera
 
 from ...app_config import HikvisionMotionConfig
+
+logger = logging.getLogger(__name__)
 
 MOTION_EVENTS = {
     "Motion",
@@ -14,23 +17,6 @@ MOTION_EVENTS = {
     "Exiting Region",
     "Entering Region",
 }
-
-
-# class HikvisionEventConfig:
-#     host: str
-#     port: int
-#     username: str
-#     password: str
-#     ssl: bool
-
-#     def __init__(
-#         self, host: str, port: int, username: str, password: str, ssl: bool = False
-#     ):
-#         self.host = host
-#         self.port = port
-#         self.username = username
-#         self.password = password
-#         self.ssl = ssl
 
 
 def event_states_has_motion(event_states: Dict[str, List[List[Any]]]) -> bool:
@@ -81,9 +67,8 @@ class HikvisionMotionDetection:
             self._callback(motion)
 
     def _update_callback(self, id: str):
-        print(f"Callback signal from: {id}")
+        logger.debug(f"Callback signal from: {id}")
 
         motion = has_motion(self._cam)
-        print(f"Has motion: {motion}")
 
         self.trigger_callback(motion)

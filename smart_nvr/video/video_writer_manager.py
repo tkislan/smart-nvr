@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os.path
 from typing import Dict, List, Optional, Tuple
 
@@ -8,6 +9,8 @@ from smart_nvr.video.output_file import OutputFile, OutputFileType
 
 from ..camera.image import DetectionCameraImageContainer
 from .video_output import VideoOutput
+
+logger = logging.getLogger(__name__)
 
 VIDEO_MAX_TIME_MILLIS = 15 * 1000  # 15 seconds
 VIDEO_MAX_NO_DETECTION_TIME_MILLIS = 5 * 1000  # 5 seconds
@@ -65,7 +68,7 @@ class VideoWriterManager:
             f"{camera_name}_{img_datetime.strftime('%Y-%m-%dT%H%M%S')}.mp4",
         )
         video_output = VideoOutput(file_path, width, height)
-        print("Created video output:", file_path, video_output)
+        logger.info("Created video output: {file_path}, {video_output}")
         self._video_outputs[camera_name] = video_output
 
         return video_output

@@ -1,3 +1,4 @@
+import logging
 import os.path
 import time
 from typing import List, Tuple, Union
@@ -7,6 +8,8 @@ from typing_extensions import Literal
 from ..camera.image import CameraImageContainer
 from .base_model import BaseDetectionModel, adjust_cropped_detection
 from .detection_types import Detection
+
+logger = logging.getLogger(__name__)
 
 SSDModelName = Union[
     Literal["ssd_mobilenet_v2_coco_2018_03_29"],
@@ -53,7 +56,7 @@ class OpenCVTensorflowDetectionModel(BaseDetectionModel):
         self._model = cv2.dnn.readNetFromTensorflow(model_path, config_path)
 
         if cv2.cuda.getCudaEnabledDeviceCount() > 0:
-            print("OpenCV DNN Using Cuda")
+            logger.info("OpenCV DNN Using Cuda")
             self._model.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
             self._model.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
@@ -79,7 +82,7 @@ class OpenCVTensorflowDetectionModel(BaseDetectionModel):
 
             t = int(time.perf_counter() * 1000)
             output = self._model.forward()
-            # print(f"Model infer took {int(time.perf_counter() * 1000) - t} ms")
+            logger.debug(f"Model infer took {int(time.perf_counter() * 1000) - t} ms")
 
             for raw_prediction in output[0, 0, :, :]:
                 confidence = float(raw_prediction[2])

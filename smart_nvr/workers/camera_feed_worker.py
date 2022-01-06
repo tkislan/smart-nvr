@@ -1,3 +1,4 @@
+import logging
 import queue
 import threading
 import time
@@ -10,6 +11,8 @@ from ..app_config import CameraFeedConfig
 from ..camera.image import CameraImageContainer, get_split_image_dimensions
 from ..camera.motion_detection.hikvision import HikvisionMotionDetection
 from .base_worker import BaseWorker
+
+logger = logging.getLogger(__name__)
 
 
 class CameraFeedWorker(BaseWorker):
@@ -31,7 +34,7 @@ class CameraFeedWorker(BaseWorker):
         return self._image_queue
 
     def _handle_motion_changed(self, motion: bool):
-        print(f"{self._camera_name} motion: {motion}")
+        logger.info(f"{self._camera_name} motion: {motion}")
         if motion:
             self.enable_read()
         else:
@@ -58,7 +61,9 @@ class CameraFeedWorker(BaseWorker):
                 ret = cap.grab()
 
                 if ret is not True:
-                    print("Failed to grab image from camera")
+                    logger.error(
+                        f"Failed to grab image from camera: {self._camera_name}"
+                    )
                     time.sleep(5)
                     break
 
@@ -67,7 +72,9 @@ class CameraFeedWorker(BaseWorker):
 
                 ret, raw_image_np = cap.retrieve()
                 if ret is not True:
-                    print("Failed to retrieve image from camera")
+                    logger.error(
+                        f"Failed to retrieve image from camera: {self._camera_name}"
+                    )
                     time.sleep(5)
                     break
 
@@ -85,8 +92,8 @@ class CameraFeedWorker(BaseWorker):
                 except queue.Full:
                     pass
         except Exception as error:
-            print("Camera feed failed")
-            print(error)
+            logger.error(f"Camera feed failed: {self._camera_name}")
+            logger.error(error)
             if cap is not None:
                 cap.release()
             time.sleep(5)
@@ -95,8 +102,8 @@ class CameraFeedWorker(BaseWorker):
                 if cap is not None:
                     cap.release()
             except Exception as error:
-                print("Failed to release camera feed")
-                print(error)
+                logger.error(f"Failed to release camera feed: {self._camera_name}")
+                logger.error(error)
 
     def enable_read(self):
         if self._should_exit.is_set():

@@ -1,4 +1,7 @@
+import logging
 import threading
+
+logger = logging.getLogger(__name__)
 
 
 class BaseWorker(threading.Thread):
@@ -17,9 +20,9 @@ class BaseWorker(threading.Thread):
             try:
                 self.run_processing()
             except Exception as error:
-                print(f"{self.__class__.__name__} processing failed", error)
+                logger.error(f"{self.__class__.__name__} processing failed {error}")
         self.teardown()
 
     def stop(self):
-        print(f"Stopping {self.__class__.__name__}")
+        logger.info(f"Stopping {self.__class__.__name__}")
         self._should_exit.set()
