@@ -10,7 +10,7 @@ from .base_worker import BaseWorker
 
 
 def get_object_name(output_file: OutputFile) -> str:
-    file_name, _ = os.path.splitext(output_file.file_path)
+    file_name = os.path.basename(output_file.file_path)
     return str(
         PosixPath(output_file.file_type.value)
         / str(output_file.timestamp.year).zfill(2)
