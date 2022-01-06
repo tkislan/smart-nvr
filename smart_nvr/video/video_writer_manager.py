@@ -38,7 +38,9 @@ class VideoWriterManager:
             detection_image_file = OutputFile(
                 file_type=OutputFileType.image,
                 file_path=image_file_path,
-                timestamp=video_output.timestamp,
+                timestamp=datetime.datetime.fromtimestamp(
+                    img.camera_image_container.created_at / 1000, datetime.timezone.utc
+                ),
             )
 
         video_output.write_image(img)
@@ -53,20 +55,17 @@ class VideoWriterManager:
         height = img.camera_image_container.raw_image_np.shape[0]
         width = img.camera_image_container.raw_image_np.shape[1]
 
-        video_output = self._video_outputs.get(camera_name)
+        img_datetime = datetime.datetime.fromtimestamp(
+            img.camera_image_container.created_at / 1000, datetime.timezone.utc
+        )
 
-        if video_output is None:
-            img_datetime = datetime.datetime.fromtimestamp(
-                img.camera_image_container.created_at / 1000, datetime.timezone.utc
-            )
-
-            file_path = os.path.join(
-                self._output_directory,
-                f"{camera_name}_{img_datetime.strftime('%Y-%m-%dT%H%M%S')}.mp4",
-            )
-            video_output = VideoOutput(file_path, width, height)
-            print("Created video output:", file_path, video_output)
-            self._video_outputs[camera_name] = video_output
+        file_path = os.path.join(
+            self._output_directory,
+            f"{camera_name}_{img_datetime.strftime('%Y-%m-%dT%H%M%S')}.mp4",
+        )
+        video_output = VideoOutput(file_path, width, height)
+        print("Created video output:", file_path, video_output)
+        self._video_outputs[camera_name] = video_output
 
         return video_output
 
