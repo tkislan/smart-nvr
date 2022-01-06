@@ -128,7 +128,14 @@ jobs:
     
     - name: Build image
       run: |
-        docker build -f Dockerfile.${{ matrix.target }} -t ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ github.run_number }}-${{ env.GIT_BRANCH }}-${{ env.GIT_SHORT_SHA }} .
+        if docker image inspect ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ env.GIT_BRANCH }} > /dev/null; then
+          docker build -f Dockerfile.${{ matrix.target }} --cache-from ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ env.GIT_BRANCH }} -t ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ github.run_number }}-${{ env.GIT_BRANCH }}-${{ env.GIT_SHORT_SHA }} .
+        elif docker image inspect ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-master > /dev/null; then
+          docker build -f Dockerfile.${{ matrix.target }} --cache-from ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-master -t ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ github.run_number }}-${{ env.GIT_BRANCH }}-${{ env.GIT_SHORT_SHA }} .
+        else
+          docker build -f Dockerfile.${{ matrix.target }} -t ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ github.run_number }}-${{ env.GIT_BRANCH }}-${{ env.GIT_SHORT_SHA }} .
+        fi
+        
         docker tag ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ github.run_number }}-${{ env.GIT_BRANCH  }}-${{ env.GIT_SHORT_SHA }} ghcr.io/${{ env.REPOSITORY_NAME }}:${{ matrix.target }}-${{ env.GIT_BRANCH  }}
 
     - name: Push image
