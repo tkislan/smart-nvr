@@ -30,7 +30,8 @@ class VideoWorker(BaseWorker):
             )
 
             image_output_file = self._video_writer_manager.write_image(img)
-            self._output_file_queue.put_nowait(image_output_file)
+            if image_output_file is not None:
+                self._output_file_queue.put_nowait(image_output_file)
         except queue.Empty:
             pass
         except queue.Full:
@@ -41,7 +42,7 @@ class VideoWorker(BaseWorker):
         for output_file in output_files:
             print("Closed video writer:", output_file)
             try:
-                self._output_file_queue.put_nowait(image_output_file)
+                self._output_file_queue.put_nowait(output_file)
             except queue.Full:
                 pass
 
