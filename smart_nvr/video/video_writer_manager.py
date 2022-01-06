@@ -33,6 +33,7 @@ class VideoWriterManager:
         video_output = self._video_outputs.get(camera_name)
         if video_output is None:
             video_output = self.create_video_output(img)
+            self._video_outputs[camera_name] = video_output
 
             image_file_path = self.write_image_file(img)
             detection_image_file = OutputFile(
