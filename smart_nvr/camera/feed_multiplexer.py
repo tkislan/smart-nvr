@@ -1,5 +1,5 @@
-from typing import List, Optional
 from threading import Condition, Lock
+from typing import List, Optional
 
 from .image import CameraImageContainer
 
