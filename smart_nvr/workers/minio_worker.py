@@ -29,37 +29,44 @@ class MinioWorker(BaseWorker):
         super().__init__(name="MinioWorker")
         self._file_queue = file_queue
 
-        self._minio_client = Minio(
-            f"{config.host}:{config.port}",
-            secure=config.secure,
-            access_key=config.access_key,
-            secret_key=config.secret_key,
-        )
         self._bucket_name = config.bucket
 
-        if not self._minio_client.bucket_exists(self._bucket_name):
-            self._minio_client.make_bucket(self._bucket_name)
+        try:
+            self._minio_client = Minio(
+                f"{config.host}:{config.port}",
+                secure=config.secure,
+                access_key=config.access_key,
+                secret_key=config.secret_key,
+            )
+            if not self._minio_client.bucket_exists(self._bucket_name):
+                self._minio_client.make_bucket(self._bucket_name)
+        except Exception as error:
+            print(error)
+            self._minio_client = None
 
     def run_processing(self):
         try:
             output_file = self._file_queue.get(block=True, timeout=1)
 
             print(output_file)
+
+            self.upload_file(output_file)
         except queue.Empty:
             pass
 
     def upload_file(self, output_file: OutputFile):
         try:
-            object_name = get_object_name(output_file)
+            if self._minio_client is not None:
+                object_name = get_object_name(output_file)
 
-            print(
-                f"Uploading file from {output_file.file_path} to {self._bucket_name}/{object_name}"
-            )
-            self._minio_client.fput_object(
-                bucket_name=self._bucket_name,
-                object_name=object_name,
-                file_path=output_file.file_path,
-            )
+                print(
+                    f"Uploading file from {output_file.file_path} to {self._bucket_name}/{object_name}"
+                )
+                self._minio_client.fput_object(
+                    bucket_name=self._bucket_name,
+                    object_name=object_name,
+                    file_path=output_file.file_path,
+                )
         except Exception as error:
             print(error)
         finally:
