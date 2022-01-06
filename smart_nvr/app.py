@@ -1,5 +1,4 @@
-import threading
-import time
+import signal
 from typing import List
 
 import cv2
@@ -68,14 +67,13 @@ def run():
     for worker in workers:
         worker.start()
 
-    def timeout_stop_detection_worker():
-        time.sleep(60)
+    def stop_detection_worker(signum, frame):
         detection_worker.stop()
 
-    threading.Thread(target=timeout_stop_detection_worker).start()
+    signal.signal(signal.SIGINT, stop_detection_worker)
+    signal.signal(signal.SIGTERM, stop_detection_worker)
 
     # RUN
-    # time.sleep(30)
     detection_worker.run()
 
     for worker in workers:
