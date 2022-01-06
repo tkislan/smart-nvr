@@ -78,7 +78,12 @@ class VideoWriterManager:
             self._output_directory,
             f"{img.camera_image_container.camera_name}_{img_datetime.strftime('%Y-%m-%dT%H%M%S')}.jpeg",
         )
-        cv2.imwrite(file_path, img.camera_image_container.raw_image_np)
+
+        #  Convert from RGB to BGR
+        raw_image_np = img.camera_image_container.raw_image_np[..., ::-1]
+
+        cv2.imwrite(file_path, raw_image_np)
+
         return file_path
 
     @staticmethod
