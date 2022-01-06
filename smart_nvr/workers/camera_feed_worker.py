@@ -1,5 +1,4 @@
 import logging
-import queue
 import threading
 import time
 from typing import Optional
@@ -8,6 +7,7 @@ import cv2
 import numpy as np
 
 from ..app_config import CameraFeedConfig
+from ..camera.feed_multiplexer import CameraFeedMultiplexer
 from ..camera.image import CameraImageContainer, get_split_image_dimensions
 from ..camera.motion_detection.hikvision import HikvisionMotionDetection
 from .base_worker import BaseWorker
@@ -16,22 +16,19 @@ logger = logging.getLogger(__name__)
 
 
 class CameraFeedWorker(BaseWorker):
-    _image_queue: "queue.Queue[CameraImageContainer]"
-
-    def __init__(self, camera_name: str, config: CameraFeedConfig):
+    def __init__(
+        self,
+        camera_name: str,
+        feed_multiplexer: CameraFeedMultiplexer,
+        config: CameraFeedConfig,
+    ):
         super().__init__(name=f"CameraFeedWorker[{camera_name}]")
         self._camera_name = camera_name
-        # self._rtstp_url = rtstp_url
+        self._feed_multiplexer = feed_multiplexer
         self._config = config
         self._should_read = threading.Event()
         self._motion_detection = HikvisionMotionDetection(config.motion)
         self._motion_detection.set_callback(self._handle_motion_changed)
-
-        self._image_queue = queue.Queue(1)
-
-    @property
-    def image_queue(self) -> "queue.Queue[CameraImageContainer]":
-        return self._image_queue
 
     def _handle_motion_changed(self, motion: bool):
         logger.info(f"{self._camera_name} motion: {motion}")
@@ -51,7 +48,6 @@ class CameraFeedWorker(BaseWorker):
             if not self._should_read.wait(timeout=1):
                 return
 
-            # cap = cv2.VideoCapture(self._rtstp_url)
             cap = cv2.VideoCapture(self._config.rtsp_url)
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
@@ -67,7 +63,7 @@ class CameraFeedWorker(BaseWorker):
                     time.sleep(5)
                     break
 
-                if not self._image_queue.empty():
+                if self._feed_multiplexer.contains(self._camera_name):
                     continue
 
                 ret, raw_image_np = cap.retrieve()
@@ -88,8 +84,8 @@ class CameraFeedWorker(BaseWorker):
                 )
 
                 try:
-                    self._image_queue.put_nowait(image_container)
-                except queue.Full:
+                    self._feed_multiplexer.put_nowait(image_container)
+                except CameraFeedMultiplexer.Full:
                     pass
         except Exception as error:
             logger.error(f"Camera feed failed: {self._camera_name}")

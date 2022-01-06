@@ -27,7 +27,7 @@ class DetectionWorker(BaseWorker):
 
     def run_processing(self):
         try:
-            img = self._image_queue.get(block=True, timeout=1)
+            img = self._image_queue.get(timeout=1)
 
             detections = self._model.detect(img)
 
@@ -37,5 +37,5 @@ class DetectionWorker(BaseWorker):
             )
 
             self._detection_queue.put(DetectionCameraImageContainer(img, detections))
-        except queue.Empty:
+        except CameraFeedMultiplexer.Empty:
             pass
