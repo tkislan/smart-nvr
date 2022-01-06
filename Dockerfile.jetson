@@ -13,6 +13,7 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 
+RUN mkdir output
 RUN mkdir /config
 
 env PYTHONPATH=/usr/src/app
