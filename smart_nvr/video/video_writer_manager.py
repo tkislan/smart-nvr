@@ -12,8 +12,8 @@ from .video_output import VideoOutput
 
 logger = logging.getLogger(__name__)
 
-VIDEO_MAX_TIME_MILLIS = 15 * 1000  # 15 seconds
-VIDEO_MAX_NO_DETECTION_TIME_MILLIS = 5 * 1000  # 5 seconds
+VIDEO_MAX_TIME_MILLIS = 30 * 1000  # 30 seconds
+VIDEO_MAX_NO_DETECTION_TIME_MILLIS = 10 * 1000  # 10 seconds
 
 
 class VideoWriterManager:
