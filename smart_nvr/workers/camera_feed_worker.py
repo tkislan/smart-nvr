@@ -9,6 +9,7 @@ import numpy as np
 from ..app_config import CameraFeedConfig
 from ..camera.feed_multiplexer import CameraFeedMultiplexer
 from ..camera.image import CameraImageContainer, get_split_image_dimensions
+from ..camera.motion_detection.detection import detect_motion
 from ..camera.motion_detection.hikvision import HikvisionMotionDetection
 from .base_worker import BaseWorker
 
@@ -50,6 +51,7 @@ class CameraFeedWorker(BaseWorker):
 
             cap = cv2.VideoCapture(self._config.rtsp_url)
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            previous_raw_image_np: Optional[np.ndarray] = None
 
             time.sleep(1)
 
@@ -77,11 +79,24 @@ class CameraFeedWorker(BaseWorker):
                 raw_image_np = raw_image_np[..., ::-1]  #  Convert from BGR to RGB
                 raw_image_np = raw_image_np.astype(np.uint8)
 
-                image_container = CameraImageContainer.create(
-                    self._camera_name,
-                    raw_image_np,
-                    get_split_image_dimensions(raw_image_np),
-                )
+                if previous_raw_image_np is None:
+                    previous_raw_image_np = raw_image_np
+                    continue
+
+                motion_dimensions = detect_motion(previous_raw_image_np, raw_image_np)
+
+                if len(motion_dimensions > 0):
+                    image_container = CameraImageContainer.create(
+                        self._camera_name,
+                        raw_image_np,
+                        motion_dimensions,
+                    )
+                else:
+                    image_container = CameraImageContainer.create(
+                        self._camera_name,
+                        raw_image_np,
+                        get_split_image_dimensions(raw_image_np),
+                    )
 
                 try:
                     self._feed_multiplexer.put_nowait(image_container)
