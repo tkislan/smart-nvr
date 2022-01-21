@@ -1,11 +1,15 @@
-import time
+import logging
 from datetime import datetime
 from fractions import Fraction
 from typing import Optional
 
 import av
 
+from smart_nvr.utils.timing import get_current_time_millis
+
 from ..camera.image import DetectionCameraImageContainer
+
+logger = logging.getLogger(__name__)
 
 VIDEO_MAX_TIME_MILLIS = 15 * 1000  # 15 seconds
 VIDEO_MAX_NO_DETECTION_TIME_MILLIS = 5 * 1000  # 5 seconds
@@ -34,17 +38,33 @@ class VideoOutput:
         return datetime.fromtimestamp(self._first_frame_time / 1000)
 
     def is_max_time_running(self) -> bool:
-        return (
+        current_time = get_current_time_millis()
+        value = (
             self._first_frame_time is not None
-            and (time.time() * 1000) - self._first_frame_time >= VIDEO_MAX_TIME_MILLIS
+            and current_time - self._first_frame_time >= VIDEO_MAX_TIME_MILLIS
         )
 
+        if value:
+            logger.debug(
+                f"[IsMaxTimeRunning] First frame: {self._first_frame_time}, Current time: {current_time}"
+            )
+
+        return value
+
     def is_max_time_no_detection_running(self) -> bool:
-        return (
+        current_time = get_current_time_millis()
+        value = (
             self._last_detection_time is not None
-            and (time.time() * 1000) - self._last_detection_time
+            and current_time - self._last_detection_time
             >= VIDEO_MAX_NO_DETECTION_TIME_MILLIS
         )
+
+        if value:
+            logger.debug(
+                f"[IsMaxTimeNoDetectionRunning] First frame: {self._first_frame_time}, Last detection: {self._last_detection_time}, Current time: {current_time}"
+            )
+
+        return value
 
     def write_image(self, img: DetectionCameraImageContainer):
         frame = av.VideoFrame.from_ndarray(
@@ -56,10 +76,8 @@ class VideoOutput:
             self._first_frame_time = img.camera_image_container.created_at
         else:
             frame.pts = int(
-                (
-                    img.camera_image_container.created_at / 1000
-                    - self._first_frame_time / 1000
-                )
+                (img.camera_image_container.created_at - self._first_frame_time)
+                / 1000.0
                 / self._stream.codec_context.time_base
             )
 

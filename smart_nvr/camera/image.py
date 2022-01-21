@@ -1,7 +1,8 @@
-import time
 from typing import List, Optional, Tuple
 
 import numpy as np
+
+from smart_nvr.utils.timing import get_current_time_millis
 
 from ..detection.detection_types import Detection
 
@@ -48,7 +49,7 @@ class CameraImageContainer:
         created_at: Optional[int] = None,
     ) -> "CameraImageContainer":
         if created_at is None:
-            created_at = int(time.time() * 1000)
+            created_at = get_current_time_millis()
 
         cropped_images = [
             raw_image_np[
