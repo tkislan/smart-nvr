@@ -85,7 +85,7 @@ class CameraFeedWorker(BaseWorker):
 
                 motion_dimensions = detect_motion(previous_raw_image_np, raw_image_np)
 
-                if len(motion_dimensions > 0):
+                if len(motion_dimensions) > 0:
                     image_container = CameraImageContainer.create(
                         self._camera_name,
                         raw_image_np,
