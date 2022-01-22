@@ -11,8 +11,8 @@ from ..camera.image import DetectionCameraImageContainer
 
 logger = logging.getLogger(__name__)
 
-VIDEO_MAX_TIME_MILLIS = 15 * 1000  # 15 seconds
-VIDEO_MAX_NO_DETECTION_TIME_MILLIS = 5 * 1000  # 5 seconds
+VIDEO_MAX_TIME_MILLIS = 20 * 1000  # 20 seconds
+VIDEO_MAX_NO_DETECTION_TIME_MILLIS = 10 * 1000  # 10 seconds
 
 
 class VideoOutput:
