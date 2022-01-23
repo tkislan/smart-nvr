@@ -38,10 +38,10 @@ class YoloDetectionModel(BaseDetectionModel):
                     Detection(
                         name=result.names[int(raw_prediction[5])],
                         confidence=float(raw_prediction[4]),
-                        xmin=float(raw_prediction[0]),
-                        ymin=float(raw_prediction[1]),
-                        xmax=float(raw_prediction[2]),
-                        ymax=float(raw_prediction[3]),
+                        x1=int(raw_prediction[0]),
+                        y1=int(raw_prediction[1]),
+                        x2=int(raw_prediction[2]),
+                        y2=int(raw_prediction[3]),
                     ),
                     dimensions,
                 )

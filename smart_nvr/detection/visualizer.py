@@ -16,8 +16,8 @@ class Visualizer:
     def draw_detection(image_np: np.ndarray, detection: Detection):
         cv2.rectangle(
             image_np,
-            (int(detection.xmin), int(detection.ymin)),
-            (int(detection.xmax), int(detection.ymax)),
+            (detection.rectangle.x1, detection.rectangle.y1),
+            (detection.rectangle.x2, detection.rectangle.y2),
             BOXES_COLOR,
             BOXES_THICKNESS,
         )
@@ -28,7 +28,7 @@ class Visualizer:
         cv2.putText(
             image_np,
             label,
-            (int(detection.xmin), int(detection.ymin)),
+            (detection.rectangle.x1, detection.rectangle.y1),
             FONT_FACE,
             FONT_SCALE,
             FONT_COLOR,

@@ -1,19 +1,18 @@
-from typing import List, Tuple
+from typing import List
 
 from ..camera.image import CameraImageContainer
+from ..utils.rectangle import Rectangle
 from .detection_types import Detection
 
 
-def adjust_cropped_detection(
-    detection: Detection, dimensions: Tuple[Tuple[int, int], Tuple[int, int]]
-) -> Detection:
+def adjust_cropped_detection(detection: Detection, dimensions: Rectangle) -> Detection:
     return Detection(
         name=detection.name,
         confidence=detection.confidence,
-        xmin=detection.xmin + dimensions[1][0],
-        ymin=detection.ymin + dimensions[0][0],
-        xmax=detection.xmax + dimensions[1][0],
-        ymax=detection.ymax + dimensions[0][0],
+        x1=detection.rectangle.x1 + dimensions.x1,
+        y1=detection.rectangle.y1 + dimensions.y1,
+        x2=detection.rectangle.x2 + dimensions.x1,
+        y2=detection.rectangle.y2 + dimensions.y1,
     )
 
 

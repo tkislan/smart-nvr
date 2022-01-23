@@ -1,7 +1,10 @@
-from typing import List, Tuple
+from typing import List
 
 import cv2
 import numpy as np
+
+from ...utils.geometry import merge_rectangles, square_box_rectangles
+from ...utils.rectangle import Rectangle
 
 # GAUSIAN_BLUR_SIZE = (5, 5)
 GAUSIAN_BLUR_SIZE = (21, 21)
@@ -9,11 +12,12 @@ MIN_CONTOUR_AREA_FACTOR = 0.0005
 MAX_CONTOUR_AREA_FACTOR = 0.2
 THRESHOLD_MINVALUE = 20
 THRESHOLD_MAXVALUE = 255
-DEFAULT_COUNTOURS_SIZE = 4
+DEFAULT_COUNTOURS_SIZE = 2
 
 
-def contours_to_rectangles(contours) -> List[Tuple[int, int, int, int]]:
-    return [cv2.boundingRect(contour) for contour in contours]
+def contours_to_rectangles(contours) -> List[Rectangle]:
+    bounding_rectangles = [cv2.boundingRect(contour) for contour in contours]
+    return [Rectangle(x, y, x + w, y + h) for x, y, w, h in bounding_rectangles]
 
 
 def filter_motion_areas(
@@ -21,16 +25,16 @@ def filter_motion_areas(
     min_contour_area: int,
     max_contour_area: int,
     size: int = DEFAULT_COUNTOURS_SIZE,
-) -> List[Tuple[int, int, int, int]]:
+) -> List[Rectangle]:
     return list(
         sorted(
             [
                 rectangle
                 for rectangle in contours_to_rectangles(contours)
-                if rectangle[2] * rectangle[3] > min_contour_area
-                and rectangle[2] * rectangle[3] < max_contour_area
+                if rectangle.area > min_contour_area
+                and rectangle.area < max_contour_area
             ],
-            key=lambda rectangle: rectangle[2] * rectangle[3],
+            key=lambda rectangle: rectangle.area,
             reverse=True,
         )
     )[:size]
@@ -41,7 +45,7 @@ def filter_motion_areas_by_contours(
     min_contour_area: int,
     max_contour_area: int,
     size: int = DEFAULT_COUNTOURS_SIZE,
-) -> List[Tuple[int, int, int, int]]:
+) -> List[Rectangle]:
     return contours_to_rectangles(
         [
             contour
@@ -63,39 +67,7 @@ def filter_motion_areas_by_contours(
     )
 
 
-def rectangle_to_dimensions(
-    rectangle: Tuple[int, int, int, int],
-    shape: Tuple[int, int],  # height, width
-) -> Tuple[Tuple[int, int], Tuple[int, int]]:
-    img_height, img_width = shape
-
-    x, y, rec_width, rec_height = rectangle
-
-    if rec_width < 300 and rec_height < 300:
-        size = 300
-    elif rec_width < 600 and rec_height < 600:
-        size = 600
-    elif rec_width < 900 and rec_height < 900:
-        size = 900
-
-    topleft_x = max(0, x - int((size - rec_width) / 2))
-    topleft_y = max(0, y - int((size - rec_height) / 2))
-
-    bottomright_x = min(img_width - 1, (x + rec_width) + int((size - rec_width) / 2))
-    bottomright_y = min(img_height - 1, (y + rec_height) + int((size - rec_height) / 2))
-
-    topleft_x = max(0, bottomright_x - size)
-    topleft_y = max(0, bottomright_y - size)
-
-    bottomright_x = topleft_x + size
-    bottomright_y = topleft_y + size
-
-    return ((topleft_y, bottomright_y), (topleft_x, bottomright_x))
-
-
-def detect_motion(
-    previous_img: np.ndarray, current_img: np.ndarray
-) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+def detect_motion(previous_img: np.ndarray, current_img: np.ndarray) -> List[Rectangle]:
     (height, width, _) = current_img.shape
     total_area = height * width
 
@@ -117,6 +89,10 @@ def detect_motion(
         contours, min_contour_area, max_contour_area
     )
 
-    return [
-        rectangle_to_dimensions(rectangle, (height, width)) for rectangle in rectangles
+    rectangles = merge_rectangles(rectangles)
+
+    dimensions = [
+        square_box_rectangles(rectangle, (height, width)) for rectangle in rectangles
     ]
+
+    return dimensions

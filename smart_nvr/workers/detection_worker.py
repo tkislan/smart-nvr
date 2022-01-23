@@ -3,6 +3,7 @@ import queue
 from ..camera.feed_multiplexer import CameraFeedMultiplexer
 from ..camera.image import DetectionCameraImageContainer
 from ..detection.base_model import BaseDetectionModel
+from ..detection.detection_types import merge_detections
 from ..detection.post_processing import filter_detections
 from .base_worker import BaseWorker
 
@@ -35,6 +36,7 @@ class DetectionWorker(BaseWorker):
                 detections,
                 self._detection_names,
             )
+            detections = merge_detections(detections)
 
             self._detection_queue.put(DetectionCameraImageContainer(img, detections))
         except CameraFeedMultiplexer.Empty:

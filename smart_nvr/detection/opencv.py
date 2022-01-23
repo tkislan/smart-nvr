@@ -93,10 +93,10 @@ class OpenCVTensorflowDetectionModel(BaseDetectionModel):
                             Detection(
                                 name=COCO_LABELS.get(int(raw_prediction[1]), "unknown"),
                                 confidence=confidence,
-                                xmin=float(raw_prediction[3] * cropped_image.shape[1]),
-                                ymin=float(raw_prediction[4] * cropped_image.shape[0]),
-                                xmax=float(raw_prediction[5] * cropped_image.shape[1]),
-                                ymax=float(raw_prediction[6] * cropped_image.shape[0]),
+                                x1=int(raw_prediction[3] * cropped_image.shape[1]),
+                                y1=int(raw_prediction[4] * cropped_image.shape[0]),
+                                x2=int(raw_prediction[5] * cropped_image.shape[1]),
+                                y2=int(raw_prediction[6] * cropped_image.shape[0]),
                             ),
                             dimensions,
                         )

@@ -2,9 +2,9 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-from smart_nvr.utils.timing import get_current_time_millis
-
 from ..detection.detection_types import Detection
+from ..utils.rectangle import Rectangle
+from ..utils.timing import get_current_time_millis
 
 
 def split_image_into_squares(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -14,11 +14,11 @@ def split_image_into_squares(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]
 
 def get_split_image_dimensions(
     image: np.ndarray,
-) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+) -> List[Rectangle]:
     height, width, _ = image.shape
     return [
-        ((0, height), (0, height)),
-        ((0, height), (width - height, width)),
+        Rectangle(0, 0, height, height),
+        Rectangle(width - height, 0, width, height),
     ]
 
 
@@ -27,7 +27,7 @@ class CameraImageContainer:
         self,
         camera_name: str,
         raw_image_np: np.ndarray,
-        dimensions: List[Tuple[Tuple[int, int], Tuple[int, int]]],
+        dimensions: List[Rectangle],
         cropped_images: List[np.ndarray],
         detailed: bool,
         created_at: int,
@@ -44,7 +44,7 @@ class CameraImageContainer:
         cls,
         camera_name: str,
         raw_image_np: np.ndarray,
-        dimensions: List[Tuple[Tuple[int, int], Tuple[int, int]]],
+        dimensions: List[Rectangle],
         detailed: bool = False,
         created_at: Optional[int] = None,
     ) -> "CameraImageContainer":
@@ -53,8 +53,8 @@ class CameraImageContainer:
 
         cropped_images = [
             raw_image_np[
-                crop_image_dimensions[0][0] : crop_image_dimensions[0][1],
-                crop_image_dimensions[1][0] : crop_image_dimensions[1][1],
+                crop_image_dimensions.y1 : crop_image_dimensions.y2,
+                crop_image_dimensions.x1 : crop_image_dimensions.x2,
                 :,
             ]
             for crop_image_dimensions in dimensions
@@ -76,5 +76,4 @@ class DetectionCameraImageContainer:
         self.detections = detections
 
     def has_detections(self):
-        # return True  # TODO - temporary hack
         return len(self.detections) > 0
