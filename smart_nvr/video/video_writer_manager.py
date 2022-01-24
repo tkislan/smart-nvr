@@ -68,7 +68,7 @@ class VideoWriterManager:
             f"{camera_name}_{img_datetime.strftime('%Y-%m-%dT%H%M%S')}.mp4",
         )
         video_output = VideoOutput(file_path, width, height)
-        logger.info("Created video output: {file_path}, {video_output}")
+        logger.info(f"Created video output: {file_path}, {video_output}")
         self._video_outputs[camera_name] = video_output
 
         return video_output
